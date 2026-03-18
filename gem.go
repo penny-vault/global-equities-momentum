@@ -54,7 +54,6 @@ func (s *GlobalEquitiesMomentum) Setup(eng *engine.Engine) {
 
 	eng.Schedule(tc)
 	eng.SetBenchmark(eng.Asset("VFINX"))
-	eng.RiskFreeAsset(eng.Asset("DGS3MO"))
 }
 
 func (s *GlobalEquitiesMomentum) Describe() engine.StrategyDescription {
