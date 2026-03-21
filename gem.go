@@ -26,7 +26,6 @@ import (
 	"github.com/penny-vault/pvbt/data"
 	"github.com/penny-vault/pvbt/engine"
 	"github.com/penny-vault/pvbt/portfolio"
-	"github.com/penny-vault/pvbt/tradecron"
 )
 
 //go:embed README.md
@@ -46,15 +45,7 @@ func (s *GlobalEquitiesMomentum) Name() string {
 	return "Global Equities Momentum"
 }
 
-func (s *GlobalEquitiesMomentum) Setup(eng *engine.Engine) {
-	tc, err := tradecron.New("@monthend", tradecron.MarketHours{Open: 930, Close: 1600})
-	if err != nil {
-		panic(err)
-	}
-
-	eng.Schedule(tc)
-	eng.SetBenchmark(eng.Asset("VFINX"))
-}
+func (s *GlobalEquitiesMomentum) Setup(_ *engine.Engine) {}
 
 func (s *GlobalEquitiesMomentum) Describe() engine.StrategyDescription {
 	return engine.StrategyDescription{
@@ -63,10 +54,12 @@ func (s *GlobalEquitiesMomentum) Describe() engine.StrategyDescription {
 		Source:      "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2042750",
 		Version:     "1.0.0",
 		VersionDate: time.Date(2026, 3, 15, 0, 0, 0, 0, time.UTC),
+		Schedule:    "@monthend",
+		Benchmark:   "VFINX",
 	}
 }
 
-func (s *GlobalEquitiesMomentum) Compute(ctx context.Context, eng *engine.Engine, strategyPortfolio portfolio.Portfolio) error {
+func (s *GlobalEquitiesMomentum) Compute(ctx context.Context, eng *engine.Engine, strategyPortfolio portfolio.Portfolio, batch *portfolio.Batch) error {
 	// 1. Build a universe of US equities and T-bills for the absolute momentum check.
 	usAsset := eng.Asset(s.USTicker)
 	intlAsset := eng.Asset(s.InternationalTicker)
@@ -100,11 +93,9 @@ func (s *GlobalEquitiesMomentum) Compute(ctx context.Context, eng *engine.Engine
 	intlReturn := returns.Value(intlAsset, data.MetricClose)
 	tbillReturn := returns.Value(tbillAsset, data.MetricClose)
 
-	ts := eng.CurrentDate().Unix()
-
-	strategyPortfolio.Annotate(ts, "us-return-12m", fmt.Sprintf("%.4f", usReturn))
-	strategyPortfolio.Annotate(ts, "intl-return-12m", fmt.Sprintf("%.4f", intlReturn))
-	strategyPortfolio.Annotate(ts, "tbill-return-12m", fmt.Sprintf("%.4f", tbillReturn))
+	batch.Annotate("us-return-12m", fmt.Sprintf("%.4f", usReturn))
+	batch.Annotate("intl-return-12m", fmt.Sprintf("%.4f", intlReturn))
+	batch.Annotate("tbill-return-12m", fmt.Sprintf("%.4f", tbillReturn))
 
 	// 4. Decision logic:
 	//    - If US equities 12m return < T-bill 12m return -> bonds (absolute momentum)
@@ -130,7 +121,7 @@ func (s *GlobalEquitiesMomentum) Compute(ctx context.Context, eng *engine.Engine
 			intlReturn*100, usReturn*100, s.InternationalTicker)
 	}
 
-	strategyPortfolio.Annotate(ts, "justification", justification)
+	batch.Annotate("justification", justification)
 
 	allocation := portfolio.Allocation{
 		Date:          eng.CurrentDate(),
@@ -138,7 +129,7 @@ func (s *GlobalEquitiesMomentum) Compute(ctx context.Context, eng *engine.Engine
 		Justification: justification,
 	}
 
-	if err := strategyPortfolio.RebalanceTo(ctx, allocation); err != nil {
+	if err := batch.RebalanceTo(ctx, allocation); err != nil {
 		return fmt.Errorf("rebalance failed: %w", err)
 	}
 
