@@ -15,8 +15,11 @@
 
 package main
 
-import "github.com/penny-vault/pvbt/cli"
+import (
+	"github.com/penny-vault/global-equities-momentum/gem"
+	"github.com/penny-vault/pvbt/cli"
+)
 
 func main() {
-	cli.Run(&GlobalEquitiesMomentum{})
+	cli.Run(&gem.GlobalEquitiesMomentum{})
 }

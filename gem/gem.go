@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gem
 
 import (
 	"context"
@@ -68,7 +68,7 @@ func (s *GlobalEquitiesMomentum) Compute(ctx context.Context, eng *engine.Engine
 
 	allUniverse := eng.Universe(usAsset, intlAsset, tbillAsset)
 
-	priceDF, err := allUniverse.Window(ctx, portfolio.Months(12), data.MetricClose)
+	priceDF, err := allUniverse.Window(ctx, portfolio.Months(13), data.AdjClose)
 	if err != nil {
 		return fmt.Errorf("failed to fetch prices: %w", err)
 	}
@@ -89,9 +89,9 @@ func (s *GlobalEquitiesMomentum) Compute(ctx context.Context, eng *engine.Engine
 		return nil
 	}
 
-	usReturn := returns.Value(usAsset, data.MetricClose)
-	intlReturn := returns.Value(intlAsset, data.MetricClose)
-	tbillReturn := returns.Value(tbillAsset, data.MetricClose)
+	usReturn := returns.Value(usAsset, data.AdjClose)
+	intlReturn := returns.Value(intlAsset, data.AdjClose)
+	tbillReturn := returns.Value(tbillAsset, data.AdjClose)
 
 	batch.Annotate("us-return-12m", fmt.Sprintf("%.4f", usReturn))
 	batch.Annotate("intl-return-12m", fmt.Sprintf("%.4f", intlReturn))
