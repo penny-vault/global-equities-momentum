@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/penny-vault/global-equities-momentum/gem"
+	"github.com/penny-vault/pvbt/asset"
 	"github.com/penny-vault/pvbt/data"
 	"github.com/penny-vault/pvbt/engine"
 	"github.com/penny-vault/pvbt/portfolio"
@@ -76,7 +77,7 @@ var _ = Describe("GlobalEquitiesMomentum", func() {
 
 		tickers := map[string]bool{}
 		for _, t := range txns {
-			if t.Type == portfolio.BuyTransaction || t.Type == portfolio.SellTransaction {
+			if t.Type == asset.BuyTransaction || t.Type == asset.SellTransaction {
 				tickers[t.Asset.Ticker] = true
 			}
 		}
@@ -91,13 +92,13 @@ var _ = Describe("GlobalEquitiesMomentum", func() {
 
 		type trade struct {
 			date   string
-			txType portfolio.TransactionType
+			txType asset.TransactionType
 			ticker string
 		}
 
 		var trades []trade
 		for _, t := range txns {
-			if t.Type == portfolio.BuyTransaction || t.Type == portfolio.SellTransaction {
+			if t.Type == asset.BuyTransaction || t.Type == asset.SellTransaction {
 				trades = append(trades, trade{
 					date:   t.Date.In(nyc).Format("2006-01-02"),
 					txType: t.Type,
@@ -107,21 +108,21 @@ var _ = Describe("GlobalEquitiesMomentum", func() {
 		}
 
 		expected := []trade{
-			{"2024-06-28", portfolio.BuyTransaction, "SPY"},
-			{"2024-09-30", portfolio.BuyTransaction, "SPY"},
-			{"2025-03-31", portfolio.BuyTransaction, "SPY"},
-			{"2025-04-30", portfolio.SellTransaction, "SPY"},
-			{"2025-04-30", portfolio.BuyTransaction, "VEU"},
-			{"2025-06-30", portfolio.BuyTransaction, "VEU"},
-			{"2025-07-31", portfolio.SellTransaction, "VEU"},
-			{"2025-07-31", portfolio.BuyTransaction, "SPY"},
-			{"2025-08-29", portfolio.SellTransaction, "SPY"},
-			{"2025-08-29", portfolio.BuyTransaction, "VEU"},
-			{"2025-09-30", portfolio.SellTransaction, "VEU"},
-			{"2025-09-30", portfolio.BuyTransaction, "SPY"},
-			{"2025-10-31", portfolio.SellTransaction, "SPY"},
-			{"2025-10-31", portfolio.BuyTransaction, "VEU"},
-			{"2025-12-31", portfolio.BuyTransaction, "VEU"},
+			{"2024-06-28", asset.BuyTransaction, "SPY"},
+			{"2024-09-30", asset.BuyTransaction, "SPY"},
+			{"2025-03-31", asset.BuyTransaction, "SPY"},
+			{"2025-04-30", asset.SellTransaction, "SPY"},
+			{"2025-04-30", asset.BuyTransaction, "VEU"},
+			{"2025-06-30", asset.BuyTransaction, "VEU"},
+			{"2025-07-31", asset.SellTransaction, "VEU"},
+			{"2025-07-31", asset.BuyTransaction, "SPY"},
+			{"2025-08-29", asset.SellTransaction, "SPY"},
+			{"2025-08-29", asset.BuyTransaction, "VEU"},
+			{"2025-09-30", asset.SellTransaction, "VEU"},
+			{"2025-09-30", asset.BuyTransaction, "SPY"},
+			{"2025-10-31", asset.SellTransaction, "SPY"},
+			{"2025-10-31", asset.BuyTransaction, "VEU"},
+			{"2025-12-31", asset.BuyTransaction, "VEU"},
 		}
 
 		Expect(trades).To(HaveLen(len(expected)))
